@@ -1,4 +1,4 @@
-﻿namespace RemoteStd
+﻿namespace Remote
 {
     using System.Diagnostics.CodeAnalysis;
 
