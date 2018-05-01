@@ -5,3 +5,5 @@
 /.vs/Remote
 /RemoteTest/obj/Debug
 /RemoteTest/bin/Debug
+/packages
+/Remote.sln.DotSettings.user

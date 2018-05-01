@@ -228,7 +228,7 @@
                 this.OnClientAdded(client);
 
                 // read the client.
-                Task.Run(() => this.ClientReader(client));
+                this.ClientReader(client);
             }
 
             this.listener.Stop();

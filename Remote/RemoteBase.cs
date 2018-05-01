@@ -25,7 +25,7 @@
         /// <summary>
         /// The payload length size.
         /// </summary>
-        private const int PayloadLengthSize = sizeof(ushort);
+        private const int PayloadLengthSize = sizeof(int);
 
         /// <summary>
         /// The data index.
@@ -96,9 +96,7 @@
         /// </returns>
         protected virtual bool SendRaw(Socket socket, IList<byte> packet)
         {
-            var result = socket.Send(packet.ToArray());
-
-            return result == packet.Count;
+            return socket.Send(packet.ToArray()) == packet.Count;
         }
 
         /// <summary>
@@ -128,7 +126,7 @@
             var packet = new List<byte> { (byte)RemoteConfig.MessageTypes.Object };
 
             // add the size of the payload.
-            packet.AddRange(BitConverter.GetBytes((ushort)(4 + message.Length)));
+            packet.AddRange(BitConverter.GetBytes(message.Length));
 
             // add the object.
             packet.AddRange(message);
@@ -161,7 +159,7 @@
             var packet = new List<byte> { (byte)RemoteConfig.MessageTypes.Bytes };
 
             // add the size of the payload.
-            packet.AddRange(BitConverter.GetBytes((ushort)message.Count));
+            packet.AddRange(BitConverter.GetBytes(message.Count));
 
             // copy the message to a packet.
             packet.AddRange(message);
@@ -193,7 +191,7 @@
             var packet = new List<byte> { (byte)RemoteConfig.MessageTypes.String };
 
             // add the size of the payload.
-            packet.AddRange(BitConverter.GetBytes((ushort)message.Length));
+            packet.AddRange(BitConverter.GetBytes(message.Length));
 
             // copy the message to a packet.
             packet.AddRange(Encoding.ASCII.GetBytes(message));
@@ -241,7 +239,7 @@
                         if (read > 0)
                         {
                             // store the total size of the packet.
-                            var size = BitConverter.ToUInt16(buffer, FullPacketSizeOffset);
+                            var size = BitConverter.ToInt32(buffer, FullPacketSizeOffset);
 
                             // read the remainder of the packet. 
                             read = socket.Receive(buffer, DataIndex, size, SocketFlags.None) + FullPacketSizeOffset;
@@ -251,7 +249,7 @@
                         }
                     }
                 }
-                catch (Exception ex)
+                catch
                 {
                     // some exception occured so lets assume the socket disconnected.
                 }

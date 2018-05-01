@@ -1,17 +1,21 @@
 ﻿namespace RemoteTest
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
 
     using Remote;
 
-    class Program
+    /// <summary>
+    /// The program.
+    /// </summary>
+    public class Program
     {
         /// <summary>
         /// Defines the entry point of the application.
         /// </summary>
         /// <param name="args">The arguments.</param>
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             // Create a server on port 888
             var server = Server.StartNew(888);
@@ -28,10 +32,14 @@
                 {
                     case Test t:
 
+                        // we have our test object. 
+                        // print the current Count.
                         Console.WriteLine("Server : " + t.Count);
 
-                        // we have our test object. 
+                        // increment the count
                         t.Count++;
+
+                        // send back to the client the updated object [incremented by 1].
                         server.NotifyClient(s, t);
                         break;
 
@@ -42,28 +50,27 @@
                 }
             };
 
-
             // start our client async connection.
             // passing the server address and server port. 
             // this will run as a different thread. 
             var client = CreateClient("localhost", 888);
 
-
-            while (true)
+            // use the idispose pattern on the server. 
+            using (server)
             {
-                if (Console.KeyAvailable)
+                while (true)
                 {
-                    if (Console.ReadKey(true).Key == ConsoleKey.Q)
+                    if (Console.KeyAvailable)
                     {
-                        break;
+                        if (Console.ReadKey(true).Key == ConsoleKey.Q)
+                        {
+                            break;
+                        }
                     }
+
+                    Task.Delay(100);
                 }
-
-                Task.Delay(100);
             }
-
-            // dispose of the server
-            server.Dispose();
 
             // wait for the client to exit. 
             client.Wait();
@@ -74,7 +81,9 @@
         /// </summary>
         /// <param name="address">The address.</param>
         /// <param name="port">The port.</param>
-        /// <returns></returns>
+        /// <returns>
+        /// The task to wait for. 
+        /// </returns>
         private static async Task CreateClient(string address, int port)
         {
             // create a connection client to the server,
@@ -98,14 +107,16 @@
                         case Test t:
                             Console.WriteLine("Client : " + t.Count);
 
+                            // delay some time 
+                            Thread.Sleep(1000);
+
                             // increment our counter and send it back to the server
                             t.Count++;
                             client.Send(t);
-                         
+
                             break;
                     }
                 };
-
 
                 // send our initial message
                 client.Send(new Test());
@@ -116,10 +127,19 @@
                 }
             }
         }
-    }
 
-    public class Test
-    {
-        public int Count { get; set; } = 1;
+        /// <summary>
+        /// The test.
+        /// </summary>
+        public class Test
+        {
+            /// <summary>
+            /// Gets or sets the count.
+            /// </summary>
+            /// <value>
+            /// The count.
+            /// </value>
+            public int Count { get; set; } = 1;
+        }
     }
 }

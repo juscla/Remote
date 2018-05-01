@@ -17,12 +17,9 @@
         /// <param name="port">The port.</param>
         public Client(string address, int port = RemoteConfig.Port)
         {
-            this.Connected = this.Disposed = false;
+            this.Disposed = false;
 
-            this.Socket = new TcpClient().Client;
-
-            this.Socket.Connect(address, port);
-            this.Connected = this.Socket.Connected;
+            this.Socket = new TcpClient(address, port).Client;
 
             if (!this.Connected)
             {
@@ -39,6 +36,11 @@
         {
             this.Socket = new TcpClient().Client;
         }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether we are connected.
+        /// </summary>
+        public new bool Connected => this.Socket.Connected;
 
         /// <summary>
         /// Gets the socket.
@@ -67,9 +69,8 @@
 
             while (DateTime.Now < end)
             {
-                if (client.Socket.ConnectAsync(address, port).Wait(500))
+                if (client.Socket.ConnectAsync(address, port).Wait(750))
                 {
-                    client.Connected = true;
                     client.Reader();
                     return client;
                 }
