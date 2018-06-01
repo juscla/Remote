@@ -65,21 +65,25 @@
         public static async Task<Client> WaitForServer(string address, int port = RemoteConfig.Port, TimeSpan? timeout = null)
         {
             var end = timeout == null ? DateTime.Now.AddYears(1) : DateTime.Now.Add((TimeSpan)timeout);
-            var client = new Client();
 
             while (DateTime.Now < end)
             {
-                if (client.Socket.ConnectAsync(address, port).Wait(750))
+                try
                 {
-                    client.Reader();
-                    return client;
+                    var client = new Client(address, port);
+                    if (client.Connected)
+                    {
+                        return client;
+                    }
                 }
+                catch
+                {
 
-                client = new Client();
-                await Task.Delay(150);
+                    await Task.Delay(500);
+                }
             }
 
-            return client;
+            return new Client();
         }
 
         /// <summary>

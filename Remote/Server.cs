@@ -9,7 +9,7 @@
     /// <summary>
     /// The server.
     /// </summary>
-    /// <seealso cref="RemoteStd.RemoteBase" />
+    /// <seealso cref="RemoteBase" />
     public class Server : RemoteBase
     {
         /// <summary>

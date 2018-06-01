@@ -91,7 +91,7 @@
             var client = await Client.WaitForServer(address, port, TimeSpan.FromMinutes(1));
 
             // check if we have a valid Client object.
-            if (client == null)
+            if (!client.Connected)
             {
                 Console.WriteLine("Server connection Timed out");
                 return;
