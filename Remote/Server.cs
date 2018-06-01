@@ -224,11 +224,11 @@
                     // add the client
                     this.Clients.Add(client);
                 }
-
-                this.OnClientAdded(client);
-
+                
                 // read the client.
                 this.ClientReader(client);
+
+                this.OnClientAdded(client);
             }
 
             this.listener.Stop();
