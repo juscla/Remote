@@ -244,8 +244,14 @@
                             // read the remainder of the packet. 
                             read = socket.Receive(buffer, DataIndex, size, SocketFlags.None) + FullPacketSizeOffset;
 
+                            while (read < size)
+                            {
+                                // read all the bytes until we have reached our Size
+                                read += socket.Receive(buffer, read, size, SocketFlags.None) + FullPacketSizeOffset;
+                            }
+
                             // parse the packet read from the socket.
-                            this.ProcessBuffer(socket, buffer.Take(read).ToArray());
+                            this.ProcessBuffer(socket, buffer.Take(size + 1).ToArray());
                         }
                     }
                 }
