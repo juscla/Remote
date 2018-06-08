@@ -250,13 +250,13 @@
                             // copy our data type into the first byte of our buffer. 
                             buffer[MessageTypeIndex] = sizeBuffer[MessageTypeIndex];
 
-                            // read the remainder of the packet. 
-                            read = socket.Receive(buffer, DataIndex, size, SocketFlags.None) + DataIndex;
+                            // set our read to a single byte [we already ready the type]
+                            read = DataIndex;
 
                             while (read < size)
                             {
-                                // read all the bytes until we have reached our Size
-                                read += socket.Receive(buffer, read, size - read, SocketFlags.None);
+                                // read all the bytes available until we have reached our Size
+                                read += socket.Receive(buffer, read, socket.Available, SocketFlags.None);
                             }
 
                             // parse the packet read from the socket.
