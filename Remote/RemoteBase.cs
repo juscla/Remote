@@ -256,7 +256,7 @@
                             while (read < size)
                             {
                                 // read all the bytes available until we have reached our Size
-                                read += socket.Receive(buffer, read, socket.Available, SocketFlags.None);
+                                read += socket.Receive(buffer, read, Math.Min(size, socket.Available), SocketFlags.None);
                             }
 
                             // parse the packet read from the socket.
