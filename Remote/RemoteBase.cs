@@ -72,7 +72,7 @@
         /// <summary>
         /// Gets the name.
         /// </summary>
-        private string Name => this.GetType().Name;
+        protected string Name => this.GetType().Name;
 
         /// <summary>
         /// The dispose.
@@ -214,9 +214,6 @@
         /// </returns>
         protected async Task Reader(Socket socket, int bufferSize = RemoteConfig.PacketSize)
         {
-            // create a buffer to read our data into.
-            var buffer = new byte[bufferSize];
-
             while (socket.Connected && !this.Disposed)
             {
                 if (socket.Available < 1)
@@ -228,30 +225,42 @@
                 {
                     if (this.RawMode)
                     {
+                        // create a buffer to read our raw data into.
+                        var buffer = new byte[bufferSize];
                         var read = socket.Receive(buffer);
                         this.OnRawMessage(socket, buffer.Take(read).ToArray());
                     }
                     else
-                    {  
-                        // read the first two bytes to determine size. 
-                        var read = socket.Receive(buffer, 0, FullPacketSizeOffset + PayloadLengthSize, SocketFlags.None);
+                    {
+                        // create a buffer to read our size information into.
+                        var sizeBuffer = new byte[FullPacketSizeOffset + PayloadLengthSize];
 
-                        if (read > 0)
+                        // read the first 5 bytes to determine size and type. 
+                        var read = socket.Receive(sizeBuffer, 0, sizeBuffer.Length, SocketFlags.None);
+
+                        if (read == sizeBuffer.Length)
                         {
-                            // store the total size of the packet.
-                            var size = BitConverter.ToInt32(buffer, FullPacketSizeOffset);
+                            // calculate the total size of the packet.
+                            var size = BitConverter.ToInt32(sizeBuffer, FullPacketSizeOffset);
+
+                            // create a new buffer based on the requested size
+                            // padded by one for the type. 
+                            var buffer = new byte[DataIndex + size];
+
+                            // copy our data type into the first byte of our buffer. 
+                            buffer[MessageTypeIndex] = sizeBuffer[MessageTypeIndex];
 
                             // read the remainder of the packet. 
-                            read = socket.Receive(buffer, DataIndex, size, SocketFlags.None) + FullPacketSizeOffset;
+                            read = socket.Receive(buffer, DataIndex, size, SocketFlags.None) + DataIndex;
 
                             while (read < size)
                             {
                                 // read all the bytes until we have reached our Size
-                                read += socket.Receive(buffer, read, size, SocketFlags.None) + FullPacketSizeOffset;
+                                read += socket.Receive(buffer, read, size - read, SocketFlags.None);
                             }
 
                             // parse the packet read from the socket.
-                            this.ProcessBuffer(socket, buffer.Take(size + 1).ToArray());
+                            this.ProcessBuffer(socket, buffer);
                         }
                     }
                 }
